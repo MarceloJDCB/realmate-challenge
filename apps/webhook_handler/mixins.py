@@ -1,6 +1,6 @@
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
-from realmate import settings
+from realmate_challenge import settings
 
 class WebhookAuthentication(BaseAuthentication):
     """

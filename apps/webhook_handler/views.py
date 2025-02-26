@@ -6,7 +6,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
-from webhook_handler.tasks import process_webhook
+from apps.webhook_handler.tasks import process_webhook
 from .models import Conversation
 from .serializers import ConversationSerializer, WebhookSerializer
 from .mixins import WebhookAuthentication

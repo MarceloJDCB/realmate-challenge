@@ -4,7 +4,7 @@ from .views import WebhookViewSet, ConversationViewSet
 
 router = DefaultRouter()
 router.register(r'conversations', ConversationViewSet)
-router.register(r'webhooks', WebhookViewSet)
+router.register(r'webhooks', WebhookViewSet, basename='webhook')
 
 urlpatterns = [
     path('', include(router.urls)),
