@@ -1,10 +1,7 @@
-from django.shortcuts import render
 from rest_framework import status, viewsets
-from rest_framework.views import APIView
-from rest_framework.generics import RetrieveAPIView
-from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from django_celery_results.models import TaskResult
 
 from apps.webhook_handler.tasks import process_webhook
 from .models import Conversation
@@ -32,8 +29,8 @@ class WebhookViewSet(viewsets.ViewSet):
         """
         serializer = WebhookSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        task_id = process_webhook.delay(serializer.validated_data)
-        return Response({'task_id': task_id}, status=status.HTTP_202_ACCEPTED)
+        result = process_webhook.delay(serializer.validated_data)
+        return Response({'task_id': str(result)}, status=status.HTTP_202_ACCEPTED)
 
     @action(detail=True, methods=['get'])
     def task_status(self, request, pk=None):
@@ -46,8 +43,9 @@ class WebhookViewSet(viewsets.ViewSet):
         Returns:
             Response com o status atual da tarefa
         """
-        task = process_webhook.AsyncResult(pk)
-        return Response({'status': task.status})
+        task = TaskResult.objects.filter(task_id=pk).first()
+        status = task.status if task else 'NOT_FOUND'
+        return Response({'status': status})
 
 
 class ConversationViewSet(viewsets.ReadOnlyModelViewSet):

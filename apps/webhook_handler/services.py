@@ -1,5 +1,7 @@
-from django.shortcuts import get_object_or_404
+import logging
 from .models import Conversation, Message
+
+logger = logging.getLogger('webhook_handler')
 
 class WebhookService:
     """
@@ -20,7 +22,11 @@ class WebhookService:
         Returns:
             Conversation: A nova conversa criada.
         """
-        return Conversation.objects.create(id=data['data']['id'])
+        conversation_id = data['data']['id']
+        logger.info(f"Creating new conversation with ID: {conversation_id}")
+        conversation = Conversation.objects.create(id=conversation_id)
+        logger.debug(f"Conversation {conversation_id} created successfully")
+        return conversation
     
     @staticmethod
     def create_message(data: dict) -> Message:
@@ -35,20 +41,32 @@ class WebhookService:
             Message: A nova mensagem criada.
 
         Raises:
-            ValueError: Se tentar adicionar mensagem a uma conversa fechada.
-            Http404: Se a conversa não for encontrada.
+            ValueError: Se tentar adicionar mensagem a uma conversa fechada ou se a conversa não existir.
         """
-        conversation = get_object_or_404(Conversation, id=data['data']['conversation_id'])
+        conversation_id = data['data']['conversation_id']
+        message_id = data['data']['id']
+        logger.info(f"Creating new message {message_id} for conversation {conversation_id}")
+        
+        try:
+            conversation = Conversation.objects.get(id=conversation_id)
+            logger.debug(f"Found conversation {conversation_id}")
+        except Conversation.DoesNotExist:
+            logger.error(f"Conversation {conversation_id} not found")
+            raise ValueError('Conversation not found')
+            
         if conversation.state == Conversation.CLOSED_CHOICE:
+            logger.error(f"Attempted to add message to closed conversation {conversation_id}")
             raise ValueError('Cannot add message to closed conversation')
             
-        return Message.objects.create(
-            id=data['data']['id'],
+        message = Message.objects.create(
+            id=message_id,
             conversation=conversation,
             direction=data['data']['direction'],
             content=data['data']['content'],
             timestamp=data['timestamp']
         )
+        logger.info(f"Message {message_id} created successfully in conversation {conversation_id}")
+        return message
     
     @staticmethod
     def close_conversation(data: dict) -> Conversation:
@@ -64,7 +82,16 @@ class WebhookService:
         Raises:
             Http404: Se a conversa não for encontrada.
         """
-        conversation = get_object_or_404(Conversation, id=data['data']['id'])
+        conversation_id = data['data']['id']
+        logger.info(f"Closing conversation {conversation_id}")
+        try:
+            conversation = Conversation.objects.get(id=conversation_id)
+            logger.debug(f"Found conversation {conversation_id}")
+        except Conversation.DoesNotExist:
+            logger.error(f"Conversation {conversation_id} not found")
+            raise ValueError('Conversation not found')
         conversation.state = Conversation.CLOSED_CHOICE
         conversation.save()
+        
+        logger.info(f"Conversation {conversation_id} closed successfully")
         return conversation

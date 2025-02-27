@@ -67,12 +67,12 @@ WSGI_APPLICATION = 'realmate_challenge.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': os.environ.get('DB_ENGINE', 'django.db.backends.sqlite3'),
-        'NAME': os.environ.get('DB_NAME', BASE_DIR / 'db.sqlite3'),
-        'USER': os.environ.get('DB_USER', ''),
-        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-        'HOST': os.environ.get('DB_HOST', ''),
-        'PORT': os.environ.get('DB_PORT', ''),
+        'ENGINE': os.environ.get('DB_ENGINE', 'django.db.backends.postgresql'),
+        'NAME': os.environ.get('DB_NAME', 'realmate'),
+        'USER': os.environ.get('DB_USER', 'postgres'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'postgres'),
+        'HOST': os.environ.get('DB_HOST', 'postgres'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
 
@@ -129,15 +129,14 @@ REST_FRAMEWORK = {
 }
 
 # Celery Configuration
-REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
-REDIS_PORT = os.environ.get('REDIS_PORT', '6379')
-CELERY_BROKER_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/0'
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/0')
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_CACHE_BACKEND = 'django-cache'
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True  # Added to address deprecation warning
 
 # Configurações CORS
 CORS_ALLOW_ALL_ORIGINS = DEBUG  # Permite todas as origens em desenvolvimento
@@ -170,16 +169,31 @@ else:
     LOGGING = {
         'version': 1,
         'disable_existing_loggers': False,
+        'formatters': {
+            'verbose': {
+                'format': '[{levelname}] {asctime} {module} - {message}',
+                'style': '{',
+            },
+        },
         'handlers': {
-            'file': {
-                'level': 'INFO',
-                'class': 'logging.FileHandler',
-                'filename': os.path.join(BASE_DIR, 'django.log'),
+            'console': {
+                'class': 'logging.StreamHandler',
+                'formatter': 'verbose',
             },
         },
         'loggers': {
             'django': {
-                'handlers': ['file'],
+                'handlers': ['console'],
+                'level': 'INFO',
+                'propagate': True,
+            },
+            'webhook_handler': {
+                'handlers': ['console'],
+                'level': 'DEBUG',
+                'propagate': True,
+            },
+            'celery': {
+                'handlers': ['console'],
                 'level': 'INFO',
                 'propagate': True,
             },
