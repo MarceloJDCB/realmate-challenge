@@ -153,16 +153,34 @@ if DEBUG:
     ALLOWED_HOSTS = ['localhost', '127.0.0.1'] + ALLOWED_HOSTS
 else:
     # Configuração de segurança para produção
-    # HTTPS/SSL
+    # Força o redirecionamento de todas as requisições HTTP para HTTPS
     SECURE_SSL_REDIRECT = True
+    
+    # Garante que os cookies de sessão só sejam enviados através de HTTPS
     SESSION_COOKIE_SECURE = True
+    
+    # Garante que os cookies CSRF só sejam enviados através de HTTPS
     CSRF_COOKIE_SECURE = True
+    
+    # Ativa o filtro XSS (Cross-Site Scripting) do navegador
     SECURE_BROWSER_XSS_FILTER = True
+    
+    # Impede que o navegador tente adivinhar o tipo de conteúdo (MIME sniffing)
     SECURE_CONTENT_TYPE_NOSNIFF = True
+    
+    # Define o tempo que o navegador deve lembrar que o site só deve ser acessado via HTTPS (1 ano)
     SECURE_HSTS_SECONDS = 31536000  # 1 year
+    
+    # Aplica a política HSTS também para os subdomínios
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    
+    # Permite que o site seja pré-carregado na lista HSTS dos navegadores
     SECURE_HSTS_PRELOAD = True
+    
+    # Impede que o site seja carregado em um iframe (proteção contra clickjacking)
     X_FRAME_OPTIONS = 'DENY'
+    
+    # Chave secreta para validação de webhooks
     WEBHOOK_SECRET = os.environ.get('WEBHOOK_SECRET')
 
     # Configuração de logs
