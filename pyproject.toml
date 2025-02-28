@@ -22,6 +22,18 @@ python-dotenv = "^1.0.1"
 gunicorn = "^21.2.0"
 psycopg2-binary = "^2.9.9"
 
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.3"
+pytest-django = "^4.7.0"
+factory-boy = "^3.3.0"
+pytest-factoryboy = "^2.6.0"
+
 [build-system]
 requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "realmate_challenge.settings"
+python_files = ["test_*.py", "*_test.py", "tests.py"]
+addopts = "-v -s --strict-markers"
+testpaths = ["apps"]

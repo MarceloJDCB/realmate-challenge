@@ -56,3 +56,6 @@ install:
 
 drop_db:
 	docker compose down -v postgres
+
+test:
+	docker-compose exec web pytest
