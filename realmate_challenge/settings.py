@@ -138,6 +138,13 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True  # Added to address deprecation warning
 
+# Configurações de throttle
+REST_FRAMEWORK = {
+    'DEFAULT_THROTTLE_RATES': {
+        'webhook': '60/minute',  # Ajuste conforme necessário
+    }
+}
+
 # Configurações CORS
 CORS_ALLOW_ALL_ORIGINS = DEBUG  # Permite todas as origens em desenvolvimento
 if not DEBUG:

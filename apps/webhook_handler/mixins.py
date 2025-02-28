@@ -1,9 +1,25 @@
 import hmac
 import hashlib
 
+from rest_framework.throttling import SimpleRateThrottle
 from rest_framework.authentication import BaseAuthentication
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import AuthenticationFailed, Throttled
 from realmate_challenge import settings
+
+
+class WebhookRateThrottle(SimpleRateThrottle):
+    """
+    Limitador de taxa de requisições para endpoints webhook.
+    
+    Limita as requisições a 60 por minuto por endereço IP para prevenir abusos.
+    Usa o endereço IP do cliente como identificador único para limitação de taxa.
+    """
+    rate = '60/minute'
+    scope = 'webhook'
+
+    def get_cache_key(self, request, view):
+        return self.get_ident(request)
+
 
 class WebhookAuthentication(BaseAuthentication):
     """
@@ -19,12 +35,20 @@ class WebhookAuthentication(BaseAuthentication):
     Returns:
         tuple: (None, None) se a autenticação for bem-sucedida.
     """
+
+    def __init__(self):
+        self.throttle = WebhookRateThrottle()
+
     def authenticate(self, request):
+        # Verificar rate limiting primeiro
+        if not self.throttle.allow_request(request, self):
+            raise Throttled(detail="Too many requests")
+
         received_signature = request.headers.get('Authorization')
         if not received_signature:
             raise AuthenticationFailed('No signature provided')
 
-        if not request.body:
+        if request.method != "GET" and not request.body:
             raise AuthenticationFailed('Empty request body')
 
         if settings.DEBUG:
