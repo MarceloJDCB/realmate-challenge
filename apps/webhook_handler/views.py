@@ -18,12 +18,12 @@ class WebhookViewSet(viewsets.ViewSet):
     - Verificar o status de tarefas em processamento
     """
     authentication_classes = [WebhookAuthentication]
-    
+
     @action(detail=False, methods=['post'])
     def webhook(self, request):
         """
         Recebe dados do webhook e inicia processamento assíncrono.
-        
+
         Returns:
             Response com ID da tarefa criada e status 202 (Accepted)
         """
@@ -36,10 +36,10 @@ class WebhookViewSet(viewsets.ViewSet):
     def task_status(self, request, pk=None):
         """
         Verifica o status de uma tarefa específica.
-        
+
         Args:
             pk: ID da tarefa a ser verificada
-            
+
         Returns:
             Response com o status atual da tarefa
         """
@@ -51,10 +51,9 @@ class WebhookViewSet(viewsets.ViewSet):
 class ConversationViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ViewSet somente leitura para listar e recuperar conversas.
-    
+
     Fornece endpoints para listar todas as conversas e recuperar
     conversas específicas por ID, incluindo suas mensagens.
     """
     queryset = Conversation.objects.prefetch_related('messages').all()
     serializer_class = ConversationSerializer
-

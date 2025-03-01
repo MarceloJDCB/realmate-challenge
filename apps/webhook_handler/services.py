@@ -3,14 +3,15 @@ from .models import Conversation, Message
 
 logger = logging.getLogger('webhook_handler')
 
+
 class WebhookService:
     """
     Serviço responsável por processar eventos de webhook e gerenciar conversas e mensagens.
-    
+
     Esta classe separa a regra de negócio da camada de visualização para facilitar testes unitários
     e manter a responsabilidade única dos componentes.
     """
-    
+
     @staticmethod
     def create_conversation(data: dict) -> Conversation:
         """
@@ -27,7 +28,7 @@ class WebhookService:
         conversation = Conversation.objects.create(id=conversation_id)
         logger.debug(f"Conversation {conversation_id} created successfully")
         return conversation
-    
+
     @staticmethod
     def create_message(data: dict) -> Message:
         """
@@ -46,18 +47,18 @@ class WebhookService:
         conversation_id = data['data']['conversation_id']
         message_id = data['data']['id']
         logger.info(f"Creating new message {message_id} for conversation {conversation_id}")
-        
+
         try:
             conversation = Conversation.objects.get(id=conversation_id)
             logger.debug(f"Found conversation {conversation_id}")
         except Conversation.DoesNotExist:
             logger.error(f"Conversation {conversation_id} not found")
             raise ValueError('Conversation not found')
-            
+
         if conversation.state == Conversation.CLOSED_CHOICE:
             logger.error(f"Attempted to add message to closed conversation {conversation_id}")
             raise ValueError('Cannot add message to closed conversation')
-            
+
         message = Message.objects.create(
             id=message_id,
             conversation=conversation,
@@ -67,7 +68,7 @@ class WebhookService:
         )
         logger.info(f"Message {message_id} created successfully in conversation {conversation_id}")
         return message
-    
+
     @staticmethod
     def close_conversation(data: dict) -> Conversation:
         """
@@ -92,6 +93,6 @@ class WebhookService:
             raise ValueError('Conversation not found')
         conversation.state = Conversation.CLOSED_CHOICE
         conversation.save()
-        
+
         logger.info(f"Conversation {conversation_id} closed successfully")
         return conversation

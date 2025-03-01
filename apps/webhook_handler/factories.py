@@ -4,12 +4,14 @@ import factory
 from factory.django import DjangoModelFactory
 from .models import Conversation, Message
 
+
 class ConversationFactory(DjangoModelFactory):
     class Meta:
         model = Conversation
 
     id = factory.LazyFunction(uuid.uuid4)
     state = Conversation.OPEN_CHOICE
+
 
 class MessageFactory(DjangoModelFactory):
     class Meta:

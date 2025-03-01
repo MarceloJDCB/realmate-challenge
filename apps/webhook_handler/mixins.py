@@ -10,7 +10,7 @@ from realmate_challenge import settings
 class WebhookRateThrottle(SimpleRateThrottle):
     """
     Limitador de taxa de requisições para endpoints webhook.
-    
+
     Limita as requisições a 60 por minuto por endereço IP para prevenir abusos.
     Usa o endereço IP do cliente como identificador único para limitação de taxa.
     """
@@ -54,16 +54,16 @@ class WebhookAuthentication(BaseAuthentication):
         if settings.DEBUG:
             # Modo desenvolvimento: ainda usando compare_digest para segurança
             if not hmac.compare_digest(
-                received_signature.encode('utf-8'), 
+                received_signature.encode('utf-8'),
                 settings.WEBHOOK_API_KEY.encode('utf-8')
             ):
                 raise AuthenticationFailed('Invalid token')
         else:
             if not received_signature.startswith('HMAC '):
                 raise AuthenticationFailed('Invalid signature format')
-            
+
             received_signature = received_signature.split(' ')[1]
-            
+
             secret_key = settings.WEBHOOK_SECRET.encode('utf-8')
             expected_signature = hmac.new(
                 secret_key,

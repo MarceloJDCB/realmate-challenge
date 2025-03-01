@@ -1,9 +1,10 @@
 from django.db import models
 
+
 class Conversation(models.Model):
     """
     Modelo que representa uma conversa no sistema.
-    
+
     Attributes:
         id (UUIDField): Identificador único da conversa
         state (CharField): Estado atual da conversa (OPEN ou CLOSED)
@@ -12,13 +13,13 @@ class Conversation(models.Model):
     """
     OPEN_CHOICE = 'OPEN'
     CLOSED_CHOICE = 'CLOSED'
-    STATES = (
+    STATE_CHOICES = [
         (OPEN_CHOICE, 'Open'),
         (CLOSED_CHOICE, 'Closed'),
-    )
-    
+    ]
+
     id = models.UUIDField(primary_key=True)
-    state = models.CharField(max_length=6, choices=STATES, default='OPEN')
+    state = models.CharField(max_length=6, choices=STATE_CHOICES, default=OPEN_CHOICE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -29,7 +30,7 @@ class Conversation(models.Model):
 class Message(models.Model):
     """
     Modelo que representa uma mensagem dentro de uma conversa.
-    
+
     Attributes:
         id (UUIDField): Identificador único da mensagem
         conversation (ForeignKey): Referência à conversa à qual a mensagem pertence
@@ -40,14 +41,14 @@ class Message(models.Model):
     """
     SENT_CHOICE = 'SENT'
     RECEIVED_CHOICE = 'RECEIVED'
-    DIRECTIONS = (
+    DIRECTION_CHOICES = [
         (SENT_CHOICE, 'Sent'),
         (RECEIVED_CHOICE, 'Received'),
-    )
-    
+    ]
+
     id = models.UUIDField(primary_key=True)
     conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
-    direction = models.CharField(max_length=8, choices=DIRECTIONS)
+    direction = models.CharField(max_length=8, choices=DIRECTION_CHOICES)
     content = models.TextField()
     timestamp = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)

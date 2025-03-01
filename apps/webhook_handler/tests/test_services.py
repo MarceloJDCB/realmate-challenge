@@ -4,6 +4,7 @@ from apps.webhook_handler.models import Conversation, Message
 from apps.webhook_handler.services import WebhookService
 from apps.webhook_handler.factories import ConversationFactory
 
+
 @pytest.mark.django_db
 class TestWebhookService:
     def test_create_conversation(self):
@@ -13,7 +14,7 @@ class TestWebhookService:
             'timestamp': '2025-02-21T10:20:41.349308',
             'data': {'id': conversation_id}
         }
-        
+
         conversation = WebhookService.create_conversation(data)
         assert conversation.id == conversation_id
         assert conversation.state == Conversation.OPEN_CHOICE
@@ -31,7 +32,7 @@ class TestWebhookService:
                 'conversation_id': str(conversation.id)
             }
         }
-        
+
         message = WebhookService.create_message(data)
         assert message.id == message_id
         assert message.conversation == conversation
@@ -50,7 +51,7 @@ class TestWebhookService:
                 'conversation_id': str(conversation.id)
             }
         }
-        
+
         with pytest.raises(ValueError):
             WebhookService.create_message(data)
 
@@ -61,6 +62,6 @@ class TestWebhookService:
             'timestamp': '2025-02-21T10:20:45.349308',
             'data': {'id': str(conversation.id)}
         }
-        
+
         updated_conversation = WebhookService.close_conversation(data)
         assert updated_conversation.state == Conversation.CLOSED_CHOICE
