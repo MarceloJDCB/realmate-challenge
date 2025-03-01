@@ -72,7 +72,7 @@ python manage.py runserver
 - POST `/webhook/`
   - Recebe eventos de conversas e mensagens
   - Retorna 202 Accepted com ID da tarefa
-- GET `/webhook/task_status/{task_id}/`
+- GET `/webhook/{task_id}/task_status/`
   - Consulta o estado de processamento de uma tarefa específica
   - Retorna o status atual da tarefa (PENDING, SUCCESS, FAILURE, etc)
   - Útil para acompanhar o processamento assíncrono dos webhooks
@@ -91,12 +91,6 @@ docker-compose exec web pytest
 
 # Local
 pytest
-
-# Com cobertura de testes
-pytest --cov=apps
-
-# Com relatório detalhado
-pytest -v --cov=apps --cov-report=term-missing
 ```
 
 ## 🛠 Comandos Make
@@ -178,7 +172,7 @@ curl -X POST http://localhost:8000/webhooks/webhook/ \
 
 #### 3. Verificando Status da Tarefa
 ```bash
-curl -X GET http://localhost:8000/webhooks/task_status/8f9d4e37-dd95-4018-a3c1-d99d2774e383/ \
+curl -X GET http://localhost:8000/webhooks/8f9d4e37-dd95-4018-a3c1-d99d2774e383/task_status/ \
   -H "Authorization: debug"
 
 # Resposta esperada:
