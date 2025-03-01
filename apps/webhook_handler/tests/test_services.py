@@ -39,6 +39,26 @@ class TestWebhookService:
         assert message.direction == Message.RECEIVED_CHOICE
         assert message.content == 'Test message'
 
+    def test_create_sent_message(self):
+        conversation = ConversationFactory()
+        message_id = str(uuid.uuid4())
+        data = {
+            'type': 'NEW_MESSAGE',
+            'timestamp': '2025-02-21T10:20:42.349308',
+            'data': {
+                'id': message_id,
+                'direction': 'SENT',
+                'content': 'Test sent message',
+                'conversation_id': str(conversation.id)
+            }
+        }
+
+        message = WebhookService.create_message(data)
+        assert message.id == message_id
+        assert message.conversation == conversation
+        assert message.direction == Message.SENT_CHOICE
+        assert message.content == 'Test sent message'
+
     def test_create_message_closed_conversation(self):
         conversation = ConversationFactory(state=Conversation.CLOSED_CHOICE)
         data = {
@@ -55,8 +75,44 @@ class TestWebhookService:
         with pytest.raises(ValueError):
             WebhookService.create_message(data)
 
+    def test_create_message_nonexistent_conversation(self):
+        data = {
+            'type': 'NEW_MESSAGE',
+            'timestamp': '2025-02-21T10:20:42.349308',
+            'data': {
+                'id': str(uuid.uuid4()),
+                'direction': 'RECEIVED',
+                'content': 'Test message',
+                'conversation_id': str(uuid.uuid4())
+            }
+        }
+
+        with pytest.raises(ValueError, match='Conversation not found'):
+            WebhookService.create_message(data)
+
     def test_close_conversation(self):
         conversation = ConversationFactory()
+        data = {
+            'type': 'CLOSE_CONVERSATION',
+            'timestamp': '2025-02-21T10:20:45.349308',
+            'data': {'id': str(conversation.id)}
+        }
+
+        updated_conversation = WebhookService.close_conversation(data)
+        assert updated_conversation.state == Conversation.CLOSED_CHOICE
+
+    def test_close_nonexistent_conversation(self):
+        data = {
+            'type': 'CLOSE_CONVERSATION',
+            'timestamp': '2025-02-21T10:20:45.349308',
+            'data': {'id': str(uuid.uuid4())}
+        }
+
+        with pytest.raises(ValueError, match='Conversation not found'):
+            WebhookService.close_conversation(data)
+
+    def test_close_already_closed_conversation(self):
+        conversation = ConversationFactory(state=Conversation.CLOSED_CHOICE)
         data = {
             'type': 'CLOSE_CONVERSATION',
             'timestamp': '2025-02-21T10:20:45.349308',
