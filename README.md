@@ -254,3 +254,50 @@ curl -X POST http://api.exemplo.com/webhooks/webhook/ \
   -H "Authorization: HMAC ${signature}" \
   -d '${payload}'
 ```
+
+## 🖥️ Frontend (Interface Web)
+
+O projeto inclui uma interface web simples desenvolvida em React para visualizar as conversas e mensagens.
+
+### Pré-requisitos
+- Node.js 14+ instalado
+- npm ou yarn
+
+### Instalação e Execução do Frontend
+
+1. Navegue até a pasta do frontend:
+```bash
+cd frontend
+```
+
+2. Instale as dependências:
+```bash
+npm install
+# ou
+yarn install
+```
+
+3. Inicie o servidor de desenvolvimento:
+```bash
+npm start
+# ou
+yarn start
+```
+
+O frontend estará disponível em: http://localhost:3000
+
+### Funcionalidades do Frontend
+
+- Lista de todas as conversas
+- Visualização do status das conversas (Aberta/Fechada)
+- Visualização das mensagens de cada conversa
+- Indicação de direção das mensagens (Enviada/Recebida)
+- Timestamps das mensagens no formato brasileiro
+- Interface responsiva e amigável
+
+### Desenvolvimento Local
+
+Para desenvolvimento local, certifique-se de que:
+1. O backend (API Django) está rodando na porta 8000
+2. O CORS está configurado corretamente no backend (já está configurado por padrão em ambiente de desenvolvimento)
+3. As requisições estão usando o header de autorização correto (configurado como 'debug' por padrão em desenvolvimento)
