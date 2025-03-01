@@ -1,4 +1,4 @@
-.PHONY: init up down migrate makemigrations poetry_lock
+.PHONY: init up down migrate makemigrations poetry_lock lint
 
 _cp_env:
 	cp .env.example .env
@@ -59,3 +59,6 @@ drop_db:
 
 test:
 	docker-compose exec web pytest
+
+lint:
+	docker-compose exec web flake8 .
