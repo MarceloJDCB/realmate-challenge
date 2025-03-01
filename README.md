@@ -125,3 +125,138 @@ O projeto inclui diversos comandos úteis via Makefile para facilitar o desenvol
 - `make test` - Executa os testes
 - `make lint` - Executa verificação de código com flake8
 - `make project-clean` - Limpa todos os recursos Docker do projeto
+
+## 🔐 Autenticação e Exemplos de Uso
+
+### Ambientes de Desenvolvimento
+Em ambientes locais e de desenvolvimento, a API utiliza autenticação simples via header `Authorization` usando a variável de ambiente `WEBHOOK_API_KEY`. 
+Em produção, é utilizada autenticação HMAC usando `WEBHOOK_SECRET` para maior segurança.
+
+### Variáveis de Ambiente
+```
+WEBHOOK_API_KEY=debug    # Chave para autenticação em ambiente local/dev
+WEBHOOK_SECRET=debug     # Chave secreta para HMAC em produção
+```
+
+### Exemplos de Requisições
+
+#### 1. Criando uma Nova Conversa
+```bash
+curl -X POST http://localhost:8000/webhooks/webhook/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: debug" \
+  -d '{
+    "type": "NEW_CONVERSATION",
+    "timestamp": "2025-02-21T10:20:41.349308",
+    "data": {
+        "id": "6a41b347-8d80-4ce9-84ba-7af66f369f6a"
+    }
+  }'
+
+# Resposta esperada (202 Accepted):
+# {
+#   "task_id": "8f9d4e37-dd95-4018-a3c1-d99d2774e383"
+# }
+```
+
+#### 2. Enviando uma Nova Mensagem
+```bash
+curl -X POST http://localhost:8000/webhooks/webhook/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: debug" \
+  -d '{
+    "type": "NEW_MESSAGE",
+    "timestamp": "2025-02-21T10:20:42.349308",
+    "data": {
+        "id": "49108c71-4dca-4af3-9f32-61bc745926e2",
+        "direction": "RECEIVED",
+        "content": "Olá, tudo bem?",
+        "conversation_id": "6a41b347-8d80-4ce9-84ba-7af66f369f6a"
+    }
+  }'
+```
+
+#### 3. Verificando Status da Tarefa
+```bash
+curl -X GET http://localhost:8000/webhooks/task_status/8f9d4e37-dd95-4018-a3c1-d99d2774e383/ \
+  -H "Authorization: debug"
+
+# Resposta esperada:
+# {
+#   "status": "SUCCESS"
+# }
+```
+
+#### 4. Consultando uma Conversa
+```bash
+curl -X GET http://localhost:8000/conversations/6a41b347-8d80-4ce9-84ba-7af66f369f6a/ \
+  -H "Authorization: debug"
+
+# Resposta esperada:
+# {
+#   "id": "6a41b347-8d80-4ce9-84ba-7af66f369f6a",
+#   "state": "OPEN",
+#   "messages": [
+#     {
+#       "id": "49108c71-4dca-4af3-9f32-61bc745926e2",
+#       "direction": "RECEIVED",
+#       "content": "Olá, tudo bem?",
+#       "timestamp": "2025-02-21T10:20:42.349308"
+#     }
+#   ]
+# }
+```
+
+#### 5. Fechando uma Conversa
+```bash
+curl -X POST http://localhost:8000/webhooks/webhook/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: debug" \
+  -d '{
+    "type": "CLOSE_CONVERSATION",
+    "timestamp": "2025-02-21T10:20:45.349308",
+    "data": {
+        "id": "6a41b347-8d80-4ce9-84ba-7af66f369f6a"
+    }
+  }'
+```
+
+### Autenticação em Produção (HMAC)
+Em ambiente de produção, a autenticação é feita via HMAC usando a variável `WEBHOOK_SECRET`:
+
+```python
+# Exemplo de geração do HMAC (Python)
+import hmac
+import hashlib
+import json
+import os
+
+# Dados do webhook
+webhook_data = {
+    "type": "NEW_MESSAGE",
+    "timestamp": "2025-02-21T10:20:42.349308",
+    "data": {
+        "id": "49108c71-4dca-4af3-9f32-61bc745926e2",
+        "direction": "RECEIVED",
+        "content": "Olá, tudo bem?",
+        "conversation_id": "6a41b347-8d80-4ce9-84ba-7af66f369f6a"
+    }
+}
+
+# Converter para string JSON
+payload = json.dumps(webhook_data)
+webhook_secret = os.getenv("WEBHOOK_SECRET", "debug")
+
+# Gerar assinatura HMAC
+signature = hmac.new(
+    webhook_secret.encode(),
+    payload.encode(),
+    hashlib.sha256
+).hexdigest()
+
+# Exemplo de requisição com HMAC
+curl -X POST http://api.exemplo.com/webhooks/webhook/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: HMAC ${signature}" \
+  -d '${payload}'
+```
